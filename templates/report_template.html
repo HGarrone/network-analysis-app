@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>{{ titolo }}</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #222; line-height: 1.5; }
+  h1 { border-bottom: 3px solid #4C72B0; padding-bottom: 8px; }
+  h2 { color: #4C72B0; margin-top: 40px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { color: #333; }
+  .meta { color: #777; font-size: 0.9em; }
+  .kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+  .kpi { background: #f4f6fa; border-left: 4px solid #4C72B0; padding: 10px 16px; min-width: 140px; }
+  .kpi .value { font-size: 1.6em; font-weight: bold; color: #4C72B0; }
+  .kpi .label { font-size: 0.85em; color: #666; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9em; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  th { background: #f4f6fa; }
+  .section-note { font-style: italic; color: #666; font-size: 0.9em; }
+  .placeholder { background: #fff8e1; border: 1px dashed #d9a441; padding: 10px; color: #8a6d1a; }
+  img.network-viz { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+  iframe.network-viz { width: 100%; height: 800px; border: 1px solid #ddd; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>{{ titolo }}</h1>
+<p class="meta">Generato il {{ data_generazione }} — dataset: {{ dataset_nome }}</p>
+
+<!-- ============================================================ -->
+<h2>1. Sintesi (Executive Summary)</h2>
+<div class="placeholder">
+  {{ executive_summary | default("[Da compilare: 3-5 righe con i risultati più rilevanti,
+  scritte in linguaggio non tecnico per il board.]") }}
+</div>
+
+<!-- ============================================================ -->
+<h2>2. Panoramica della rete (Connectivity)</h2>
+<p class="section-note">Corrisponde alla dimensione "Network Connectivity" del framework SNA: architettura delle relazioni.</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="value">{{ n_nodi }}</div><div class="label">Nodi</div></div>
+  <div class="kpi"><div class="value">{{ n_edge }}</div><div class="label">Legami</div></div>
+  <div class="kpi"><div class="value">{{ densita_links_su_nodi }}</div><div class="label">Densità (link/nodi)</div></div>
+  <div class="kpi"><div class="value">{{ densita_standard }}</div><div class="label">Densità standard (0-1)</div></div>
+  <div class="kpi"><div class="value">{{ diametro }}</div><div class="label">Diametro (comp. maggiore)</div></div>
+  <div class="kpi"><div class="value">{{ n_componenti }}</div><div class="label">Componenti connesse</div></div>
+</div>
+
+<h3>2.1 Visualizzazione della rete</h3>
+{{ network_image_html | default('<div class="placeholder">[Inserire qui immagine PNG o iframe HTML della rete]</div>') }}
+
+<h3>2.2 Nodi più centrali (degree)</h3>
+{{ top_degree_table | default('<div class="placeholder">[Tabella top-N nodi per degree]</div>') }}
+
+<h3>2.3 Broker / ponti strutturali (betweenness)</h3>
+<p class="section-note">La betweenness misura quanto un nodo fa da ponte tra parti della rete altrimenti lontane: valori alti = broker tra sotto-gruppi.</p>
+{{ top_betweenness_table | default('<div class="placeholder">[Tabella top-N nodi per betweenness]</div>') }}
+
+<!-- ============================================================ -->
+<h2>3. Comunità e struttura</h2>
+<p class="section-note">Individuazione di comunità (sotto-gruppi densamente connessi) e relativa rete "a grana grossa" (coarse-grain).</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="value">{{ n_comunita }}</div><div class="label">Comunità individuate</div></div>
+  <div class="kpi"><div class="value">{{ modularita }}</div><div class="label">Modularità</div></div>
+  <div class="kpi"><div class="value">{{ clustering_medio | default("N/D") }}</div><div class="label">Clustering medio</div></div>
+  <div class="kpi"><div class="value">{{ transitivita | default("N/D") }}</div><div class="label">Transitività</div></div>
+</div>
+
+{{ community_table | default('<div class="placeholder">[Tabella: comunità, dimensione, categoria/tipo prevalente]</div>') }}
+
+<h3>3.1 Rete delle comunità (coarse-grain)</h3>
+{{ coarse_network_image_html | default('<div class="placeholder">[Immagine/HTML della rete accorpata per comunità]</div>') }}
+
+<h3>3.2 Metriche per comunità</h3>
+{{ per_community_table | default('<div class="placeholder">[Tabella: densità/entropia ristrette a ogni comunità]</div>') }}
+
+<!-- ============================================================ -->
+<h2>4. Eterogeneità della rete (Entropia)</h2>
+<p class="section-note">L'entropia di vicinato misura quanto i vicini di un nodo siano eterogenei per categoria: valori bassi indicano cluster omogenei, valori alti indicano nodi "ponte" tra ambiti diversi.</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="value">{{ entropia_media }}</div><div class="label">Entropia media (normalizzata 0-1)</div></div>
+</div>
+
+{{ entropy_table | default('<div class="placeholder">[Tabella: nodi con entropia più alta/più bassa]</div>') }}
+
+<!-- ============================================================ -->
+<h2>5. Evoluzione temporale</h2>
+<p class="section-note">Corrisponde al ciclo di vita del network (IPARL): Inception, Growth, Maturity, Transition.</p>
+
+{{ temporal_chart_html | default('<div class="placeholder">[Grafico: densità/entropia/nodi attivi per anno]</div>') }}
+
+{{ temporal_table | default('<div class="placeholder">[Tabella metriche per anno]</div>') }}
+
+<h3>5.1 Animazione dell'evoluzione</h3>
+{{ evolution_gif_html | default('<div class="placeholder">[GIF animata: la rete anno per anno con layout fisso — generabile dalla pipeline (pipeline.animate) o dalla GUI]</div>') }}
+
+<!-- ============================================================ -->
+<h2>6. Reti derivate</h2>
+
+<h3>6.1 Proiezione Ente-Ente</h3>
+{{ ente_ente_summary | default('<div class="placeholder">[Metriche + immagine proiezione Ente-Ente]</div>') }}
+
+<h3>6.2 Proiezione Progetto-Progetto</h3>
+{{ progetto_progetto_summary | default('<div class="placeholder">[Metriche + immagine proiezione Progetto-Progetto]</div>') }}
+
+<h3>6.3 Rete delle Fondazioni</h3>
+{{ fondazioni_summary | default('<div class="placeholder">[Sotto-rete filtrata Type=Fondazione, per gradi]</div>') }}
+
+<h3>6.4 Ego-network</h3>
+{{ ego_summary | default('<div class="placeholder">[Ego-network dal seme scelto, per gradi 1/2/...]</div>') }}
+
+<!-- ============================================================ -->
+<h2>7. Robustezza e dipendenza (Health)</h2>
+<p class="section-note">Quanto la rete dipende da singoli nodi: effetto della rimozione dei nodi più centrali (uno alla volta) e simulazione di attacco progressivo. Una rete sana degrada in modo simile sotto attacco mirato e casuale; una rete dipendente da pochi hub collassa subito sotto attacco mirato.</p>
+
+<h3>7.1 Dipendenza dai singoli nodi chiave</h3>
+{{ dependency_table | default('<div class="placeholder">[Tabella: effetto della rimozione di ciascun nodo centrale]</div>') }}
+
+<h3>7.2 Simulazione di attacco progressivo</h3>
+{{ robustness_table | default('<div class="placeholder">[Tabella/grafico: frammentazione al crescere della frazione di nodi rimossi]</div>') }}
+
+<!-- ============================================================ -->
+<h2>8. Impatto (EVPA)</h2>
+<p class="section-note">Impatto netto = outcome × (1−deadweight) × (1−attribution) × (1−displacement), con drop-off annuo dal secondo anno. I quattro bias sono STIME fornite dall'utente (interviste/valutazioni), non calcolabili dai dati di rete.</p>
+{{ impact_table | default('<div class="placeholder">[Tabella impatto netto per progetto — compilabile dalla GUI (Export & Report → Impatto EVPA) o da impact.impact_table]</div>') }}
+
+<!-- ============================================================ -->
+<h2>9. Note metodologiche e limiti</h2>
+<p class="section-note">Dalla letteratura SNA (framework di riferimento del progetto):</p>
+<ul>
+  <li>Il nodo "Sostegno non specificato" (ed eventualmente il nodo centrale di un'ego-network) è stato escluso dalle analisi strutturali per evitare distorsioni artificiali di densità/centralità.</li>
+  <li>Le metriche quantitative (densità, centralità) non catturano qualità della collaborazione, fiducia o reciprocità: vanno lette insieme a conoscenza qualitativa del contesto.</li>
+  <li>La rete è dinamica: le letture "a snapshot" di un singolo anno possono non riflettere relazioni consolidate nel tempo (si veda §5 per la lettura cumulativa).</li>
+</ul>
+
+<hr>
+<p class="meta">Report generato automaticamente da network_analysis pipeline — {{ data_generazione }}</p>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Ambienti e cache
+.venv*/
+venv*/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+*.log
+streamlit_log.txt
+
+# Dati, documenti e archivi: mai su GitHub
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.pdf
+*.zip
+*.gnproj
+
+# Palette create dall'utente nella GUI (preferenze locali)
+custom_palettes.json

@@ -1,0 +1,17 @@
+networkx>=3.4
+pandas>=2.0
+openpyxl>=3.1
+python-louvain>=0.16
+pyvis>=0.3.2
+matplotlib>=3.7
+scipy>=1.10
+jinja2>=3.1
+streamlit>=1.30
+pillow>=10.0
+requests>=2.31
+plotly>=5.20
+scikit-learn>=1.3   # link prediction ML (senza: funzione disattivata)
+
+# opzionale: solo se la networkx installata non ha ancora nx.forceatlas2_layout
+# nativo (aggiunto in networkx 3.4+) — non serve con networkx>=3.4.
+# fa2-modified

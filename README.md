@@ -1,9 +1,14 @@
-# Network Analysis — Enti e Progetti
+# Network Studio
 
-Pipeline Python modulare per l'analisi della rete Enti↔Progetti, pensata per
-essere estesa con Claude Code. Ogni funzionalità è una funzione/classe pura
-in `core/`, richiamabile sia da script/notebook sia dalla GUI Streamlit
-(`gui_app.py`).
+Pipeline Python modulare per l'analisi di reti, con GUI Streamlit
+(`gui_app.py`). Accetta qualunque tabella nodi/edges in stile Gephi (Excel o
+CSV), reti GEXF/GraphML esistenti, oppure reti bipartite (due tipi di nodi,
+es. organizzazioni↔progetti, persone↔eventi) con proiezioni su ciascun lato.
+Ogni funzionalità è una funzione/classe pura in `core/`, richiamabile anche da
+script/notebook.
+
+Gli esempi qui sotto usano una rete bipartita Enti↔Progetti, il caso d'uso
+da cui è nata l'app.
 
 ## Installazione
 

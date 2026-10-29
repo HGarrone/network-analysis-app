@@ -1,1 +1,1 @@
-"""Package core: pipeline di network analysis per reti bipartite Enti-Progetti."""
+"""Package core: pipeline di network analysis di network analysis."""

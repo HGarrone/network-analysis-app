@@ -23,7 +23,7 @@ from core import introspect
 from core import styling
 from core.config import NODE_COLS, EDGE_COLS
 
-st.set_page_config(page_title="Network Analysis", layout="wide")
+st.set_page_config(page_title="Network Studio", layout="wide")
 
 if "pipeline" not in st.session_state:
     st.session_state.pipeline = None
@@ -70,7 +70,11 @@ def _guess_col(columns: list, candidates: list, required: bool = True):
     return (columns[0] if columns else None) if required else None
 
 
-# Ruoli mappabili per il file NODI / EDGES della rete bipartita Ente<->Progetto,
+# Lati di una rete bipartita: chiavi interne storiche ("ente"/"progetto"),
+# mostrate in modo neutro (lato Source / lato Target del file edges).
+_SIDE_LABEL = {"ente": "Lato Source (nodi di tipo 1)", "progetto": "Lato Target (nodi di tipo 2)"}
+
+# Ruoli mappabili per il file NODI / EDGES di una rete bipartita,
 # con (candidati per l'auto-riconoscimento, obbligatoria?, etichetta mostrata).
 # Solo id/source/target sono davvero obbligatori: tutto il resto, se lasciato
 # "(nessuna)", viene riempito con None e la pipeline lo gestisce comunque
@@ -153,7 +157,7 @@ def _apply_role_mapping(df: pd.DataFrame, mapping: dict, canonical: dict,
     return out
 
 
-st.title("🕸️ Network Analysis")
+st.title("🕸️ Network Studio")
 
 # ============================================================
 # Sidebar: caricamento dati
@@ -712,11 +716,11 @@ with tab_derive:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("**Proiezione bipartita**")
-        proj_side = st.selectbox("Lato da proiettare", ["ente", "progetto"])
+        proj_side = st.selectbox("Lato da proiettare", ["ente", "progetto"], format_func=_SIDE_LABEL.get)
         proj_weight = st.selectbox("Modalità peso", ["count", "sum_weight", "jaccard"])
 
-        st.caption("Filtro opzionale sui nodi proiettati (es. type = Fondazione → "
-                   "rete delle fondazioni via progetti condivisi).")
+        st.caption("Filtro opzionale sui nodi proiettati (es. type = X → rete dei soli "
+                   "nodi di tipo X, collegati dai nodi dell'altro lato che hanno in comune).")
         base_b = pipeline.G_bipartite if pipeline.G_bipartite is not None else G
         base_b_categorical = introspect.graph_attributes(base_b)["node_categorical"]
         proj_filt_options = [None] + _pick(base_b_categorical, ("type", "category", "ambito"))
@@ -767,8 +771,8 @@ with tab_derive:
 # ------------------------------------------------------------------
 with tab_multiplex:
     st.subheader("Rete multiplex: layer multipli sugli stessi nodi")
-    st.caption("Ogni edge vive su un layer (es. un anno, o un Interaction_Type: "
-               "Partner / Ente capofila / Cofinanziatore). Puoi sovrapporre layer a scelta "
+    st.caption("Ogni edge vive su un layer (es. un anno, o un tipo di relazione). "
+               "Puoi sovrapporre layer a scelta "
                "e comporre una rete risolvendo gli edge paralleli con le strategie di Gephi.")
 
     # --- 1. costruzione dal bipartito ---
@@ -791,7 +795,7 @@ with tab_multiplex:
 
     # --- 2. aggiunta della rete corrente come layer ---
     st.markdown("---")
-    st.markdown("**2. Aggiungi la rete corrente come layer** (es. la proiezione ente-ente "
+    st.markdown("**2. Aggiungi la rete corrente come layer** (es. una proiezione "
                 "sopra la rete totale)")
     mux_layer_name = st.text_input("Nome del nuovo layer",
                                     value=st.session_state.current_graph_name or "layer",
@@ -866,7 +870,7 @@ with tab_multiplex:
                     st.dataframe(pd.DataFrame(st.session_state.mux_overlap), width="stretch")
 
             st.markdown("**Livelli cumulativi di intensità** — ordina i layer dal più "
-                        "debole al più forte (es. Partner → Ente capofila → Cofinanziatore)")
+                        "debole al più forte (es. contatto → collaborazione → partnership)")
             liv_order = st.multiselect("Ordine dei livelli", [r["layer"] for r in layers_info],
                                         key="liv_order")
             if st.button("Calcola livelli di intensità") and liv_order:
@@ -914,7 +918,7 @@ with tab_multiplex:
 # ------------------------------------------------------------------
 with tab_clean:
     st.subheader("Label simili (probabili duplicati)")
-    st.caption("Nomi 'sporchi' dello stesso ente scritto in modi diversi vengono proposti come "
+    st.caption("Nomi 'sporchi' dello stesso nodo scritto in modi diversi vengono proposti come "
                "gruppi da unire. Meglio pulire la RETE BIPARTITA subito dopo l'import, prima di "
                "proiezioni e analisi: le reti derivate ereditano la pulizia. Nella fusione gli "
                "attributi diversi vengono ereditati tutti, separati da ', '.")
@@ -1535,7 +1539,8 @@ with tab_temporal:
                "l'anno vive sugli edge del bipartito, non sulle proiezioni.")
     col_p1, col_p2, col_p3 = st.columns(3)
     with col_p1:
-        pby_side = st.selectbox("Lato da proiettare", ["ente", "progetto"], key="pby_side")
+        pby_side = st.selectbox("Lato da proiettare", ["ente", "progetto"], key="pby_side",
+                               format_func=_SIDE_LABEL.get)
     with col_p2:
         pby_weight = st.selectbox("Modalità peso", ["count", "sum_weight", "jaccard"], key="pby_weight")
     with col_p3:
@@ -1696,7 +1701,8 @@ with tab_predict:
                 lp_year = st.selectbox("Anno di test", anni_lp[1:], index=len(anni_lp) - 2,
                                         key="lp_year")
             with col_h2:
-                lp_side = st.selectbox("Proiezione", ["ente", "progetto"], key="lp_side")
+                lp_side = st.selectbox("Proiezione", ["ente", "progetto"], key="lp_side",
+                                       format_func=_SIDE_LABEL.get)
             if st.button("Valuta il metodo sull'anno di test"):
                 try:
                     st.session_state.lp_holdout = pipeline.link_prediction_holdout(

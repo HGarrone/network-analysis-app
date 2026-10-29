@@ -397,8 +397,6 @@ with st.sidebar:
             st.link_button("📊 Apri GUI Grafici (online)", _grafici_url,
                            use_container_width=True,
                            help="Carica lì la tabella nodi/edge scaricata qui sotto per farne un grafico.")
-        st.link_button("🎬 Apri Pipeline Video (locale)", "http://localhost:8502",
-                       use_container_width=True, help="Deve essere già avviata separatamente.")
 
         import json as _json
         _graph_pkg = {
